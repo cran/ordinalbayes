@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Kellie J. Archer, Anna Eames Seffernick, Shuai Sun, Yiran Zhang" />
+
+
+<title>ordinalbayes: Bayesian Ordinal Regression for High-Dimensional Data</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">ordinalbayes: Bayesian Ordinal Regression
+for High-Dimensional Data</h1>
+<h4 class="author">Kellie J. Archer, Anna Eames Seffernick, Shuai Sun,
+Yiran Zhang</h4>
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The <code>ordinalbayes</code> R package was developed for fitting
+ordinal Bayesian models when there is a high-dimensional covariate
+space, such as when high-throughput genomic data are used in modeling
+the ordinal outcome. This package depends on the <code>runjags</code> R
+package and JAGS (version &gt;=4.x.x) must be installed as well. See the
+<a href="https://sourceforge.net/projects/mcmc-jags/">JAGS</a> and
+[runjags] (<a href="https://CRAN.R-project.org/package=runjags" class="uri">https://CRAN.R-project.org/package=runjags</a>) for
+installation instructions. The package includes the function
+<code>ordinalbayes</code> which can be used to fit LASSO
+(<code>model = &quot;lasso&quot;</code>), normal spike-and-slab
+(<code>model = &quot;normalss&quot;</code>), double exponential spike-and-slab
+(<code>model = &quot;dess&quot;</code>), and regression-based variable inclusion
+indicator Bayesian models (<code>model = &quot;regressvi&quot;</code>). Variable
+selection can be performed using Bayes factor or using the posterior
+distributions of the variable inclusion indicators directly. This
+vignette describes the syntax required for each of our Bayesian
+models.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ordinalbayes)</span></code></pre></div>
+<p>The package includes a two subsets of The Cancer Genome Atlas
+Cervical Squamous Cell Carcinoma and Endocervical Adenocarcinoma
+(TCGA-CESC) dataset: <code>finalSet</code> includes 2,009 transcripts
+while <code>reducedSet</code> includes 41 transcripts. Both datasets
+include the same set of subjects who belong to FIGO stages I (<span class="math inline">\(N=124\)</span>), II (<span class="math inline">\(N=61\)</span>), and III-IV (<span class="math inline">\(N=57\)</span>). To shorten run time, all
+illustrations will use <code>reducedSet</code>. Both were created using
+the BioConductor <code>DESeq2</code> package.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;DESeq2&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: S4Vectors</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: stats4</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: BiocGenerics</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;BiocGenerics&#39;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from &#39;package:stats&#39;:</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     IQR, mad, sd, var, xtabs</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from &#39;package:base&#39;:</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Filter, Find, Map, Position, Reduce, anyDuplicated, append,</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     as.data.frame, basename, cbind, colnames, dirname, do.call,</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     duplicated, eval, evalq, get, grep, grepl, intersect, is.unsorted,</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     lapply, mapply, match, mget, order, paste, pmax, pmax.int, pmin,</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     pmin.int, rank, rbind, rownames, sapply, setdiff, sort, table,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     tapply, union, unique, unsplit, which.max, which.min</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;S4Vectors&#39;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from &#39;package:base&#39;:</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     I, expand.grid, unname</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: IRanges</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: GenomicRanges</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: GenomeInfoDb</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: SummarizedExperiment</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: MatrixGenerics</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: matrixStats</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;MatrixGenerics&#39;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from &#39;package:matrixStats&#39;:</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colWeightedMeans, colWeightedMedians, colWeightedSds,</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowWeightedSds, rowWeightedVars</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading required package: Biobase</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Welcome to Bioconductor</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Vignettes contain introductory material; view with</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     &#39;browseVignettes()&#39;. To cite Bioconductor, see</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: &#39;Biobase&#39;</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following object is masked from &#39;package:MatrixGenerics&#39;:</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     rowMedians</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from &#39;package:matrixStats&#39;:</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     anyMissing, rowMedians</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>reducedSet</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; class: DESeqTransform </span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; dim: 41 242 </span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; metadata(1): version</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; assays(1): &#39;&#39;</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rownames(41): ENSG00000076344 ENSG00000077274 ... ENSG00000272071</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   ENSG00000276517</span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; rowData names(28): baseMean baseVar ... dispFit rlogIntercept</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; colnames(242): TCGA-VS-A950-01A-11R-A42T-07</span></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   TCGA-Q1-A73Q-01A-21R-A32P-07 ... TCGA-EK-A3GN-01A-11R-A213-07</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   TCGA-VS-A8QF-01A-21R-A37O-07</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; colData names(4): age_at_index cigarettes_per_day race Stage</span></span></code></pre></div>
+<p>The primary function for model fitting in the
+<code>ordinalbayes</code> package is <code>ordinalbayes</code>. The
+function arguments are</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">args</span>(ordinalbayes)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; function (formula, data, x = NULL, subset, center = TRUE, scale = TRUE, </span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     a = 0.1, b = 0.1, model = &quot;regressvi&quot;, gamma.ind = &quot;fixed&quot;, </span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     pi.fixed = 0.05, c.gamma = NULL, d.gamma = NULL, alpha.var = 10, </span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     sigma2.0 = NULL, sigma2.1 = NULL, coerce.var = 10, lambda0 = NULL, </span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     nChains = 3, adaptSteps = 5000, burnInSteps = 5000, numSavedSteps = 9999, </span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     thinSteps = 3, parallel = TRUE, seed = NULL, quiet = FALSE) </span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; NULL</span></span></code></pre></div>
+<p>When analyzing data processed using the <code>DESeq2</code>
+Bioconductor package, the genomic feature object is of class
+<code>DESeqTransform</code> which is a
+<code>SummarizedExperiment</code>, and therefore the phenotypic data are
+accessed using the <code>colData</code> extractor function</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">colData</span>(reducedSet))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DataFrame with 6 rows and 4 columns</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                              age_at_index cigarettes_per_day         race</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                 &lt;integer&gt;          &lt;numeric&gt;  &lt;character&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-VS-A950-01A-11R-A42T-07           42          0.0000000 not reported</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-Q1-A73Q-01A-21R-A32P-07           46          0.1808219        white</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EK-A2H1-01A-11R-A180-07           20          0.0000000        white</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EA-A44S-01A-12R-A26T-07           31          0.0000000        white</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-ZJ-AAX4-01A-11R-A42T-07           85          0.0312329        white</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EA-A97N-01A-11R-A38B-07           38          0.0000000        white</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                  Stage</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                              &lt;ordered&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-VS-A950-01A-11R-A42T-07         3</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-Q1-A73Q-01A-21R-A32P-07         1</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EK-A2H1-01A-11R-A180-07         1</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EA-A44S-01A-12R-A26T-07         3</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-ZJ-AAX4-01A-11R-A42T-07         2</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; TCGA-EA-A97N-01A-11R-A38B-07         1</span></span></code></pre></div>
+<p>The gene expression data are accessed using <code>assay</code>
+extractor function.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">assay</span>(reducedSet))[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                 TCGA-VS-A950-01A-11R-A42T-07 TCGA-Q1-A73Q-01A-21R-A32P-07</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000076344                     5.678609                     2.624350</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000077274                     6.720300                     6.743087</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000101888                    10.414790                    10.320279</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000115548                    12.340555                    13.032165</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000122884                    11.673475                    11.698016</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000125430                     6.970051                     6.694007</span></span></code></pre></div>
+<p>The <code>ordinalbayes</code> function accepts a model
+<code>formula</code> that specifies the ordinal outcome on the left-hand
+side of the equation and any unpenalized predictor variable(s) from the
+phenotypic dataset on the right-hand side of the <span class="math inline">\(\sim\)</span> equation; if no unpenalized
+predictor variables are included, the model formula includes 1 (the
+intercept) on the right-hand side of the equation. Unpenalized
+predictors are those that we want to coerce into the model (e.g., age)
+so that no penalty is applied. When unpenalized predictors are included
+(or coerced) into the model, the user can specify the variance
+associated with those model parameters (default
+<code>coerce.var=10</code>).</p>
+<p>For example, this call fits a regression-based variable inclusion
+indicator Bayesian model to predict the ordinal outcome
+<code>Stage</code> where <code>cigarettes_per_day+age_at_index</code>
+and <code>age_at_index</code> are included as unpenalized predictors
+(coerced into the model) and the expression of 41 genes are included as
+penalized predictors. For <code>SummarizedExperiment</code> objects like
+this one created by <code>DESeq2</code>, the user should pass to
+<code>x</code> the genomic feature data (e.g., expression of genes from
+high-throughput assays) to be penalized in the fitted model, which can
+be accessed using the <code>assay</code> extractor function. Note that
+the number of rows in both <code>data</code> and <code>x</code> should
+be the same, such that the transpose of <code>assay</code> should be
+supplied to <code>x</code>. Here a fixed constant prior for <span class="math inline">\(\pi_j\)</span> is set to 0.05. To shorten run time
+for demonstration purposes, we reduced the number of iterations for
+adaptation (<code>adaptSteps</code>), the number of iterations of the
+Markov chain to run (<code>burnInSteps</code>), and the number of saved
+steps per chain (<code>numSavedSteps</code>) for all examples.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span>cigarettes_per_day<span class="sc">+</span>age_at_index, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;regressvi&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;fixed&quot;</span>, <span class="at">pi.fixed=</span><span class="fl">0.05</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Welcome to JAGS 4.3.0 on Thu Mar 10 13:30:34 2022</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; JAGS is free software and comes with ABSOLUTELY NO WARRANTY</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading module: basemod: ok</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Loading module: bugs: ok</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . . Reading data file data.txt</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Compiling model graph</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Resolving undeclared variables</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Allocating nodes</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Graph information:</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Observed stochastic nodes: 242</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Unobserved stochastic nodes: 87</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Total graph size: 13583</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Reading parameter file inits1.txt</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Initializing model</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Adapting 500</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -------------------------------------------------| 500</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ++++++++++++++++++++++++++++++++++++++++++++++++++ 100%</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Adaptation successful</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Updating 500</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -------------------------------------------------| 500</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ************************************************** 100%</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . . . . . . Updating 2997</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -------------------------------------------------| 2950</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ************************************************** 99%</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; * 100%</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . . . . Updating 0</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; . Deleting model</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .</span></span></code></pre></div>
+<p>By default the genomic features are centered
+(<code>center=TRUE</code>) and scaled (<code>scale=TRUE</code>) and
+three chains are run (<code>nChains</code>). The user can
+<code>subset</code> the data set prior to model fitting, for example,
+<code>subset=(race==&quot;white&quot;)</code>. When analyzing data processed using
+packages that structure the genomic feature object as a
+<code>Biobase</code> <code>ExpressionSet</code>, the phenotypic data are
+accessed using <code>pData</code> extractor function while the genomic
+features to be penalized can be accessed using the <code>exprs</code>
+extractor function. Again, the number of rows in both <code>data</code>
+and <code>x</code> should be the same, such that the transpose of
+<code>exprs</code> should be supplied to <code>x</code>. Therefore, in
+the <code>ordinalbayes</code> call, <code>data</code> should ideally be
+<code>colData</code> or <code>pData</code> calls to the genomic feature
+object, though a <code>data.frame</code> name can be passed. Note that
+when passing a <code>data.frame</code> to <code>data</code> that is not
+connected to the penalized variables (<code>x</code>), the user needs to
+carefully verify that the observations in the <code>x</code> matrix are
+appropriately aligned to the phenotypic data.</p>
+<div id="lasso-ordinal-model" class="section level2">
+<h2>LASSO Ordinal Model</h2>
+<p>The LASSO Bayesian ordinal model can be fit by specifying
+<code>model=&quot;lasso&quot;</code> which assumes the penalized coefficients
+<span class="math inline">\(\beta_j\)</span> for <span class="math inline">\(j=1,\ldots,P\)</span> are from independent Laplace
+(or double exponential) distributions with parameter <span class="math inline">\(\lambda\)</span> which is from a Gamma
+distribution with parameters <code>a</code> and <code>b</code>. The
+default parameters are <code>a=0.01</code> and <code>b=0.01</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit.lasso<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span>cigarettes_per_day<span class="sc">+</span>age_at_index, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;lasso&quot;</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+</div>
+<div id="regression-based-variable-inclusion-indicator-ordinal-model" class="section level2">
+<h2>Regression-Based Variable Inclusion Indicator Ordinal Model</h2>
+<p>Like the LASSO model, the regression-based variable inclusion
+indicator model assumes the penalized coefficients <span class="math inline">\(\beta_j\)</span> for <span class="math inline">\(j=1,\ldots,P\)</span> are from independent Laplace
+(or double exponential) distributions with parameter <span class="math inline">\(\lambda\)</span> which is from a Gamma
+distribution with parameters <code>a</code> and <code>b</code>.
+Additionally, a variable inclusion indicator <span class="math inline">\(\gamma_j\)</span> is assumed to follow a Bernoulli
+distribution with parameter <span class="math inline">\(\pi_j\)</span>.
+The user can use either a fixed (<code>gamma.ind=&quot;fixed&quot;</code>) or
+random (<code>gamma.ind=&quot;random&quot;</code>) prior for <span class="math inline">\(\pi_j\)</span>. When
+<code>gamma.ind=&quot;fixed&quot;</code>, the user can specify
+<code>pi.fixed</code> as the constant prior to be some value the (0, 1)
+interval (default is 0.05). Here there are no unpenalized covariates
+included in the model so the right-hand side of the model formula is
+1.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fit.regressvi.fixed<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;regressvi&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;fixed&quot;</span>, <span class="at">pi.fixed=</span><span class="fl">0.05</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+<p>When <code>gamma.ind=&quot;random&quot;</code>, the user must specify parameter
+values for the Beta distribution <code>c.gamma</code> (e.g., 0.01) and
+<code>d.gamma</code> (e.g. 0.19).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fit.regressvi.random<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;regressvi&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;random&quot;</span>, <span class="at">c.gamma=</span><span class="fl">0.01</span>, <span class="at">d.gamma=</span><span class="fl">0.19</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+</div>
+<div id="normal-spike-and-slab-ordinal-model" class="section level2">
+<h2>Normal Spike-and-Slab Ordinal Model</h2>
+<p>The normal spike-and-slab Bayesian ordinal model can be fit by
+specifying <code>model=&quot;normalss&quot;</code>. When fitting this model the
+user is required to specify the variance for the spike by setting
+<code>sigma2.0</code> to a small positive value (e.g., 0.01) and
+variance for the slab by setting <code>sigma2.1</code> to a large
+positive value (e.g., 10). Additionally, a variable inclusion indicator
+<span class="math inline">\(\gamma_j\)</span> is assumed to follow a
+Bernoulli distribution with parameter <span class="math inline">\(\pi_j\)</span>. The user can use either a fixed
+(<code>gamma.ind=&quot;fixed&quot;</code>) or random
+(<code>gamma.ind=&quot;random&quot;</code>) prior for <span class="math inline">\(\pi_j\)</span>. When
+<code>gamma.ind=&quot;fixed&quot;</code>, the user can specify
+<code>pi.fixed</code> as the constant prior to be some value the (0, 1)
+interval (default is 0.05). Here there are no unpenalized covariates
+included in the model so the right-hand side of the model formula is
+1.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fit.normalss.fixed<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;normalss&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;fixed&quot;</span>, <span class="at">pi.fixed =</span> <span class="fl">0.05</span>, <span class="at">sigma2.0=</span><span class="fl">0.01</span>, <span class="at">sigma2.1=</span><span class="dv">10</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+<p>When <code>gamma.ind=&quot;random&quot;</code>, the user must specify parameter
+values for the Beta distribution <code>c.gamma</code> (e.g., 0.01) and
+<code>d.gamma</code> (e.g. 0.19).</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fitted.normalss.random<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;normalss&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;random&quot;</span>, <span class="at">c.gamma =</span> <span class="fl">0.01</span>, <span class="at">d.gamma=</span><span class="fl">0.19</span>, <span class="at">sigma2.0=</span><span class="fl">0.01</span>, <span class="at">sigma2.1=</span><span class="dv">10</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+</div>
+<div id="double-exponential-spike-and-slab-ordinal-model" class="section level2">
+<h2>Double Exponential Spike-and-Slab Ordinal Model</h2>
+<p>The double exponential spike-and-slab ordinal model can be fit by
+specifying <code>model=&quot;dess&quot;</code>. Like LASSO and , the slab is taken
+to be a double exponential distribution with parameter <span class="math inline">\(\lambda\)</span> which follows a Gamma
+distribution with parameters <code>a</code> and <code>b</code>. When
+fitting this model the user is required to specify the parameter for the
+spike (<span class="math inline">\(\lambda_0\)</span>) using
+<code>lambda0</code> (e.g., 20). Additionally, a variable inclusion
+indicator <span class="math inline">\(\gamma_j\)</span> is assumed to
+follow a Bernoulli distribution with parameter <span class="math inline">\(\pi_j\)</span>. The user can use either a fixed
+(<code>gamma.ind=&quot;fixed&quot;</code>) or random
+(<code>gamma.ind=&quot;random&quot;</code>) prior for <span class="math inline">\(\pi_j\)</span>. When
+<code>gamma.ind=&quot;fixed&quot;</code>, the user can specify
+<code>pi.fixed</code> as the constant prior to be some value the (0, 1)
+interval (default is 0.05). Here there are no unpenalized covariates
+included in the model so the right-hand side of the model formula is
+1.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit.dess.fixed<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;dess&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;fixed&quot;</span>, <span class="at">pi.fixed =</span> <span class="fl">0.05</span>, <span class="at">lambda0=</span><span class="dv">20</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+<p>When <code>gamma.ind=&quot;random&quot;</code>, the user must specify parameter
+values for the Beta distribution <code>c.gamma</code> (e.g., 0.01) and
+<code>d.gamma</code> (e.g. 0.19).</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fit.dess.random<span class="ot">&lt;-</span><span class="fu">ordinalbayes</span>(Stage<span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span><span class="fu">colData</span>(reducedSet),<span class="at">x=</span><span class="fu">t</span>(<span class="fu">assay</span>(reducedSet)), <span class="at">model=</span><span class="st">&quot;dess&quot;</span>, <span class="at">gamma.ind=</span><span class="st">&quot;random&quot;</span>, <span class="at">c.gamma =</span> <span class="fl">0.01</span>, <span class="at">d.gamma=</span><span class="fl">0.19</span>, <span class="at">lambda0=</span><span class="dv">20</span>, <span class="at">adaptSteps=</span><span class="dv">500</span>, <span class="at">burnInSteps=</span><span class="dv">500</span>,  <span class="at">numSavedSteps=</span><span class="dv">999</span>)</span></code></pre></div>
+</div>
+<div id="other-package-functions" class="section level2">
+<h2>Other Package Functions</h2>
+<p>Generic functions for the resulting <code>ordinalbayes</code> object
+are available for extracting meaningful results from the resulting MCMC
+chain. The <code>print</code> function returns several summaries from
+the MCMC output for each parameter monitored including: the 95th lower
+confidence limit for the highest posterior density (HPD) credible
+interval (Lower95), the median value (Median), the 95th upper confidence
+limit for the HPD credible interval (Upper95), the mean value (Mean),
+the sample standard deviation (SD), the mode of the variable (Mode), the
+Monte Carlo standard error (MCerr,) percent of SD due to MCMC (MC%ofSD),
+effective sample size (SSeff), autocorrelation at a lag of 30 (AC.30),
+and the potential scale reduction factor (psrf).</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">print</span>(fit))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            Lower95     Median     Upper95        Mean</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[1]             -0.433475000  0.9298580 2.26676e+00  0.91275616</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[2]              2.018540000  3.4247800 4.94128e+00  3.41229646</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000076344  0.000000000  0.0000000 1.00000e+00  0.32866200</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000077274  0.000000000  1.0000000 1.00000e+00  0.50984318</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000101888  0.000000000  1.0000000 1.00000e+00  0.70503837</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000115548  1.000000000  1.0000000 1.00000e+00  0.98298298</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000122884  0.000000000  0.0000000 1.00000e+00  0.05839173</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000125430  0.000000000  0.0000000 1.00000e+00  0.34367701</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000131370  0.000000000  0.0000000 1.00000e+00  0.38438438</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000135443  0.000000000  0.0000000 1.00000e+00  0.15382049</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000136457  0.000000000  0.0000000 1.00000e+00  0.18184852</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000138398  1.000000000  1.0000000 1.00000e+00  0.95261929</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000150636  0.000000000  0.0000000 1.00000e+00  0.48548549</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000161277  0.000000000  1.0000000 1.00000e+00  0.93693694</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000163510  0.000000000  0.0000000 1.00000e+00  0.05672339</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164485  0.000000000  1.0000000 1.00000e+00  0.54721388</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164651  0.000000000  1.0000000 1.00000e+00  0.54454454</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166091  0.000000000  0.0000000 1.00000e+00  0.45812479</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166342  0.000000000  0.0000000 1.00000e+00  0.14414414</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000171121  0.000000000  0.0000000 0.00000e+00  0.03970637</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000177173  1.000000000  1.0000000 1.00000e+00  0.95895896</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000180229  0.000000000  0.0000000 1.00000e+00  0.15682349</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000188817  0.000000000  0.0000000 1.00000e+00  0.40707374</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000197360  0.000000000  0.0000000 1.00000e+00  0.06039373</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000203601  0.000000000  0.0000000 1.00000e+00  0.09209209</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000225449  0.000000000  0.0000000 1.00000e+00  0.07874541</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000230201  0.000000000  0.0000000 1.00000e+00  0.36803470</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000233996  0.000000000  1.0000000 1.00000e+00  0.59793126</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236138  0.000000000  0.0000000 0.00000e+00  0.04471138</span></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236819  0.000000000  1.0000000 1.00000e+00  0.93393393</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000250602  0.000000000  0.0000000 1.00000e+00  0.32599266</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000253923  0.000000000  1.0000000 1.00000e+00  0.68935602</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000256980  0.000000000  0.0000000 1.00000e+00  0.05605606</span></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259083  0.000000000  0.0000000 1.00000e+00  0.05038372</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259134  0.000000000  1.0000000 1.00000e+00  0.69803136</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000260484  0.000000000  0.0000000 0.00000e+00  0.04304304</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000263612  0.000000000  0.0000000 1.00000e+00  0.18785452</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264049  0.000000000  0.0000000 1.00000e+00  0.15215215</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264954  0.000000000  0.0000000 1.00000e+00  0.21488155</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000265579  0.000000000  0.0000000 1.00000e+00  0.11177845</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000271711  0.000000000  0.0000000 1.00000e+00  0.08842176</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000272071  0.000000000  0.0000000 1.00000e+00  0.22288956</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000276517  0.000000000  1.0000000 1.00000e+00  0.94461128</span></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000076344   0.000000000  0.0000000 7.43305e-01  0.17478649</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000077274  -3.888170000 -0.1467700 0.00000e+00 -0.93716400</span></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000101888  -0.987420000 -0.5514100 0.00000e+00 -0.47259610</span></span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000115548   0.456972000  0.9350130 1.49592e+00  0.93016342</span></span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000122884   0.000000000  0.0000000 1.51175e-01  0.02118685</span></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000125430   0.000000000  0.0000000 7.73057e-01  0.18336678</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000131370  -0.830980000  0.0000000 0.00000e+00 -0.21829392</span></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000135443  -0.539741000  0.0000000 0.00000e+00 -0.06578075</span></span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000136457  -0.647580000  0.0000000 0.00000e+00 -0.09333314</span></span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000138398  -1.284970000 -0.8598300 0.00000e+00 -0.84204652</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000150636   0.000000000  0.0000000 9.63402e-01  0.31474352</span></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000161277   0.000000000  0.6928520 1.05848e+00  0.67259456</span></span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000163510  -0.095404800  0.0000000 1.89061e-02 -0.02167887</span></span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164485  -0.872001000 -0.3073360 0.00000e+00 -0.32036501</span></span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164651   0.000000000  0.3045340 8.91599e-01  0.32890516</span></span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166091   0.000000000  0.0000000 8.86686e-01  0.26970016</span></span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166342   0.000000000  0.0000000 4.72876e-01  0.05983235</span></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000171121   0.000000000  0.0000000 0.00000e+00 -0.01181109</span></span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000177173   0.231326000  0.7670510 1.32043e+00  0.74704148</span></span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000180229   0.000000000  0.0000000 5.74341e-01  0.07259595</span></span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000188817  -0.918385000  0.0000000 6.01200e-04 -0.25678571</span></span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000197360  -0.177786000  0.0000000 5.28925e-02 -0.02169836</span></span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000203601  -0.012203000  0.0000000 3.93316e-01  0.03440799</span></span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000225449  -0.320337000  0.0000000 0.00000e+00 -0.03102246</span></span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000230201   0.000000000  0.0000000 6.79358e-01  0.17816959</span></span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000233996   0.000000000  0.3746720 8.72514e-01  0.34556783</span></span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236138   0.000000000  0.0000000 0.00000e+00  0.01276635</span></span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236819  -1.350620000 -0.8553150 0.00000e+00 -0.82994589</span></span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000250602  -0.688813000  0.0000000 0.00000e+00 -0.16024025</span></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000253923   0.000000000  0.4490010 8.10281e-01  0.38132075</span></span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000256980  -0.111667000  0.0000000 1.50226e-02 -0.01945728</span></span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259083  -0.000288853  0.0000000 2.65257e-03 -0.01454637</span></span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259134   0.000000000  0.5588050 1.04049e+00  0.48373660</span></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000260484   0.000000000  0.0000000 0.00000e+00  0.01234166</span></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000263612  -0.569360000  0.0000000 7.29816e-05 -0.08485093</span></span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264049   0.000000000  0.0000000 4.87576e-01  0.05984188</span></span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264954   0.000000000  0.0000000 5.71368e-01  0.09499381</span></span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000265579   0.000000000  0.0000000 4.26671e-01  0.04332112</span></span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000271711   0.000000000  0.0000000 3.21571e-01  0.03133108</span></span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000272071   0.000000000  0.0000000 6.21315e-01  0.10270013</span></span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000276517  -1.199630000 -0.7801000 0.00000e+00 -0.76318384</span></span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lambda                 0.651131000  1.4160400 2.35741e+00  1.46260996</span></span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; cigarettes_per_day    -0.426335000  0.1025620 6.40773e-01  0.10095239</span></span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; age_at_index          -0.011089100  0.0162206 4.23585e-02  0.01579986</span></span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                               SD Mode       MCerr MC%ofSD SSeff         AC.30</span></span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[1]             0.70262118   NA 0.061420785     8.7   131  4.040236e-01</span></span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[2]             0.75225406   NA 0.058550590     7.8   165  3.602857e-01</span></span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000076344 0.46980521    0 0.020462713     4.4   527  1.045383e-01</span></span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000077274 0.49998652    1 0.017777370     3.6   791  9.320344e-03</span></span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000101888 0.45610161    1 0.024188016     5.3   356  1.358860e-01</span></span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000115548 0.12935618    1 0.005109442     3.9   641 -4.052177e-03</span></span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000122884 0.23452182    0 0.005461579     2.3  1844  2.032965e-02</span></span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000125430 0.47501412    0 0.014968710     3.2  1007 -2.641471e-02</span></span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000131370 0.48653059    0 0.020969202     4.3   538  5.610135e-02</span></span>
+<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000135443 0.36083679    0 0.010944534     3.0  1087  1.974260e-02</span></span>
+<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000136457 0.38578400    0 0.013444387     3.5   823  3.498624e-02</span></span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000138398 0.21248729    1 0.012978779     6.1   268  2.716031e-01</span></span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000150636 0.49987269    0 0.026435989     5.3   358  1.354807e-01</span></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000161277 0.24311692    1 0.009949310     4.1   597  5.165609e-02</span></span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000163510 0.23135191    0 0.012065727     5.2   368  1.563362e-01</span></span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164485 0.49784892    1 0.020051600     4.0   616  8.233079e-02</span></span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164651 0.49809494    1 0.023571667     4.7   447  1.100634e-01</span></span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166091 0.49832653    0 0.022140968     4.4   507  1.240225e-01</span></span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166342 0.35129444    0 0.011021039     3.1  1016  1.471610e-02</span></span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000171121 0.19530106    0 0.004733622     2.4  1702  4.494977e-03</span></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000177173 0.19841827    1 0.006197586     3.1  1025 -9.843752e-03</span></span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000180229 0.36369495    0 0.011842343     3.3   943 -5.967982e-03</span></span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000188817 0.49137081    0 0.020860697     4.2   555  9.661498e-02</span></span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000197360 0.23825462    0 0.005182162     2.2  2114 -1.987087e-02</span></span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000203601 0.28920416    0 0.008400792     2.9  1185 -1.286431e-02</span></span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000225449 0.26938594    0 0.006999707     2.6  1481  4.508945e-03</span></span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000230201 0.48235132    0 0.019704967     4.1   599  7.748766e-02</span></span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000233996 0.49039750    1 0.022160180     4.5   490  9.492323e-02</span></span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236138 0.20670396    0 0.003993517     1.9  2679  4.189357e-03</span></span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236819 0.24843900    1 0.008728489     3.5   810 -1.260635e-02</span></span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000250602 0.46882276    0 0.017193371     3.7   744  2.956125e-02</span></span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000253923 0.46283450    1 0.019218596     4.2   580  6.061405e-02</span></span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000256980 0.23006833    0 0.005440116     2.4  1789  1.103046e-02</span></span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259083 0.21877195    0 0.004419061     2.0  2451 -1.815343e-02</span></span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259134 0.45918834    1 0.024053126     5.2   364  1.764363e-01</span></span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000260484 0.20298790    0 0.005152464     2.5  1552 -1.869395e-02</span></span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000263612 0.39066114    0 0.010803767     2.8  1308 -4.700062e-03</span></span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264049 0.35922825    0 0.007486523     2.1  2302  3.402771e-02</span></span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264954 0.41080869    0 0.010826344     2.6  1440  5.426163e-02</span></span>
+<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000265579 0.31514626    0 0.008325438     2.6  1433 -2.187072e-02</span></span>
+<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000271711 0.28395467    0 0.006774902     2.4  1757 -2.008992e-03</span></span>
+<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000272071 0.41625427    0 0.015910626     3.8   684  2.510316e-02</span></span>
+<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000276517 0.22877560    1 0.008995935     3.9   647  7.038137e-02</span></span>
+<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000076344  0.27545182   NA 0.012747159     4.6   467  9.511276e-02</span></span>
+<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000077274  1.41669821   NA 0.062732731     4.4   510  8.087368e-02</span></span>
+<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000101888  0.35554978   NA 0.018770439     5.3   359  1.392913e-01</span></span>
+<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000115548  0.27431244   NA 0.009891473     3.6   769 -2.786978e-02</span></span>
+<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000122884  0.10297305   NA 0.002690444     2.6  1465  5.548370e-03</span></span>
+<span id="cb14-139"><a href="#cb14-139" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000125430  0.28356615   NA 0.010916030     3.8   675 -2.065471e-02</span></span>
+<span id="cb14-140"><a href="#cb14-140" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000131370  0.30968049   NA 0.014447889     4.7   459  4.965376e-02</span></span>
+<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000135443  0.17447576   NA 0.005856099     3.4   888  7.014074e-02</span></span>
+<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000136457  0.22033576   NA 0.007887998     3.6   780  7.115097e-02</span></span>
+<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000138398  0.30004735   NA 0.016354751     5.5   337  1.911974e-01</span></span>
+<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000150636  0.36437043   NA 0.020641486     5.7   312  1.700882e-01</span></span>
+<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000161277  0.26488946   NA 0.009287531     3.5   813  3.373874e-02</span></span>
+<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000163510  0.11887246   NA 0.007776245     6.5   234  2.653924e-01</span></span>
+<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164485  0.33036993   NA 0.013893643     4.2   565  1.014205e-01</span></span>
+<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164651  0.34032661   NA 0.016851767     5.0   408  1.309196e-01</span></span>
+<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166091  0.33254468   NA 0.017099486     5.1   378  1.361102e-01</span></span>
+<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166342  0.16326897   NA 0.005313827     3.3   944 -7.578358e-05</span></span>
+<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000171121  0.07220400   NA 0.001938587     2.7  1387  2.977390e-02</span></span>
+<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000177173  0.26274186   NA 0.008128530     3.1  1045  1.509765e-02</span></span>
+<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000180229  0.19029833   NA 0.006804792     3.6   782  4.409283e-03</span></span>
+<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000188817  0.34617478   NA 0.015648911     4.5   489  9.317959e-02</span></span>
+<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000197360  0.10346679   NA 0.002497440     2.4  1716 -1.300475e-02</span></span>
+<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000203601  0.12756907   NA 0.004482872     3.5   810  3.506626e-03</span></span>
+<span id="cb14-157"><a href="#cb14-157" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000225449  0.12468281   NA 0.003594500     2.9  1203  4.730983e-03</span></span>
+<span id="cb14-158"><a href="#cb14-158" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000230201  0.25853009   NA 0.010907662     4.2   562  1.095835e-01</span></span>
+<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000233996  0.32464712   NA 0.016420794     5.1   391  1.241967e-01</span></span>
+<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236138  0.07335294   NA 0.001712755     2.3  1834  4.658866e-03</span></span>
+<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236819  0.34651100   NA 0.013774235     4.0   633  4.639616e-02</span></span>
+<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000250602  0.25416918   NA 0.009952624     3.9   652  4.187546e-02</span></span>
+<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000253923  0.29531999   NA 0.011780088     4.0   628  6.499906e-02</span></span>
+<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000256980  0.09790173   NA 0.002288114     2.3  1831 -6.266798e-04</span></span>
+<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259083  0.07436149   NA 0.001745832     2.3  1814 -7.809889e-03</span></span>
+<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259134  0.37337270   NA 0.020512857     5.5   331  1.792189e-01</span></span>
+<span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000260484  0.06829827   NA 0.001804714     2.6  1432 -3.442721e-02</span></span>
+<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000263612  0.19762962   NA 0.005877525     3.0  1131 -6.527597e-03</span></span>
+<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264049  0.15801594   NA 0.003378146     2.1  2188  3.442352e-02</span></span>
+<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264954  0.20159813   NA 0.005570215     2.8  1310  5.387916e-02</span></span>
+<span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000265579  0.13953408   NA 0.004193964     3.0  1107 -1.658003e-02</span></span>
+<span id="cb14-172"><a href="#cb14-172" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000271711  0.11335734   NA 0.002821477     2.5  1614 -1.293232e-03</span></span>
+<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000272071  0.21480477   NA 0.009355345     4.4   527  4.264340e-02</span></span>
+<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000276517  0.29458176   NA 0.011540368     3.9   652  5.260914e-02</span></span>
+<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lambda                0.44499403   NA 0.017943188     4.0   615  1.038871e-01</span></span>
+<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; cigarettes_per_day    0.27636237   NA 0.006482322     2.3  1818 -1.333869e-02</span></span>
+<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; age_at_index          0.01402138   NA 0.001193205     8.5   138  4.131138e-01</span></span>
+<span id="cb14-178"><a href="#cb14-178" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                            psrf</span></span>
+<span id="cb14-179"><a href="#cb14-179" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[1]             1.0113915</span></span>
+<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[2]             1.0154169</span></span>
+<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000076344 1.0013954</span></span>
+<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000077274 1.0005987</span></span>
+<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000101888 0.9997783</span></span>
+<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000115548 1.0561920</span></span>
+<span id="cb14-185"><a href="#cb14-185" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000122884 1.0012792</span></span>
+<span id="cb14-186"><a href="#cb14-186" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000125430 1.0068505</span></span>
+<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000131370 1.0011319</span></span>
+<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000135443 1.0101614</span></span>
+<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000136457 1.0029154</span></span>
+<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000138398 1.0029560</span></span>
+<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000150636 1.0034633</span></span>
+<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000161277 1.0046685</span></span>
+<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000163510 1.0019082</span></span>
+<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164485 1.0038864</span></span>
+<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000164651 0.9998362</span></span>
+<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166091 1.0010285</span></span>
+<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000166342 1.0006914</span></span>
+<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000171121 1.0134976</span></span>
+<span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000177173 1.0152291</span></span>
+<span id="cb14-200"><a href="#cb14-200" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000180229 1.0061620</span></span>
+<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000188817 1.0100037</span></span>
+<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000197360 1.0037385</span></span>
+<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000203601 1.0019510</span></span>
+<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000225449 1.0015737</span></span>
+<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000230201 1.0032263</span></span>
+<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000233996 1.0011983</span></span>
+<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236138 1.0048129</span></span>
+<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000236819 1.0183495</span></span>
+<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000250602 1.0019062</span></span>
+<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000253923 1.0012277</span></span>
+<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000256980 1.0061124</span></span>
+<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259083 1.0017067</span></span>
+<span id="cb14-213"><a href="#cb14-213" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000259134 1.0027180</span></span>
+<span id="cb14-214"><a href="#cb14-214" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000260484 1.0003839</span></span>
+<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000263612 1.0019489</span></span>
+<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264049 1.0007694</span></span>
+<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000264954 0.9998891</span></span>
+<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000265579 1.0030010</span></span>
+<span id="cb14-219"><a href="#cb14-219" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000271711 1.0042908</span></span>
+<span id="cb14-220"><a href="#cb14-220" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000272071 1.0109562</span></span>
+<span id="cb14-221"><a href="#cb14-221" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000276517 1.0144901</span></span>
+<span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000076344  1.0010221</span></span>
+<span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000077274  1.0019150</span></span>
+<span id="cb14-224"><a href="#cb14-224" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000101888  0.9998463</span></span>
+<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000115548  1.0046313</span></span>
+<span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000122884  1.0085651</span></span>
+<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000125430  1.0083874</span></span>
+<span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000131370  1.0011497</span></span>
+<span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000135443  1.0152429</span></span>
+<span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000136457  1.0066863</span></span>
+<span id="cb14-231"><a href="#cb14-231" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000138398  1.0000278</span></span>
+<span id="cb14-232"><a href="#cb14-232" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000150636  1.0024666</span></span>
+<span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000161277  1.0013281</span></span>
+<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000163510  1.0040441</span></span>
+<span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164485  1.0051341</span></span>
+<span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000164651  1.0005512</span></span>
+<span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166091  1.0010422</span></span>
+<span id="cb14-238"><a href="#cb14-238" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000166342  1.0012695</span></span>
+<span id="cb14-239"><a href="#cb14-239" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000171121  1.0249745</span></span>
+<span id="cb14-240"><a href="#cb14-240" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000177173  1.0020057</span></span>
+<span id="cb14-241"><a href="#cb14-241" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000180229  1.0067688</span></span>
+<span id="cb14-242"><a href="#cb14-242" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000188817  1.0145703</span></span>
+<span id="cb14-243"><a href="#cb14-243" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000197360  1.0123973</span></span>
+<span id="cb14-244"><a href="#cb14-244" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000203601  1.0017999</span></span>
+<span id="cb14-245"><a href="#cb14-245" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000225449  1.0002578</span></span>
+<span id="cb14-246"><a href="#cb14-246" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000230201  1.0029182</span></span>
+<span id="cb14-247"><a href="#cb14-247" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000233996  1.0024614</span></span>
+<span id="cb14-248"><a href="#cb14-248" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236138  1.0158148</span></span>
+<span id="cb14-249"><a href="#cb14-249" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000236819  1.0044316</span></span>
+<span id="cb14-250"><a href="#cb14-250" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000250602  1.0019545</span></span>
+<span id="cb14-251"><a href="#cb14-251" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000253923  1.0006083</span></span>
+<span id="cb14-252"><a href="#cb14-252" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000256980  1.0346782</span></span>
+<span id="cb14-253"><a href="#cb14-253" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259083  1.0007234</span></span>
+<span id="cb14-254"><a href="#cb14-254" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000259134  1.0056051</span></span>
+<span id="cb14-255"><a href="#cb14-255" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000260484  1.0010880</span></span>
+<span id="cb14-256"><a href="#cb14-256" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000263612  1.0027956</span></span>
+<span id="cb14-257"><a href="#cb14-257" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264049  0.9999775</span></span>
+<span id="cb14-258"><a href="#cb14-258" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000264954  1.0001266</span></span>
+<span id="cb14-259"><a href="#cb14-259" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000265579  1.0033739</span></span>
+<span id="cb14-260"><a href="#cb14-260" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000271711  1.0059616</span></span>
+<span id="cb14-261"><a href="#cb14-261" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000272071  1.0161004</span></span>
+<span id="cb14-262"><a href="#cb14-262" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; beta.ENSG00000276517  1.0079891</span></span>
+<span id="cb14-263"><a href="#cb14-263" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lambda                1.0065106</span></span>
+<span id="cb14-264"><a href="#cb14-264" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; cigarettes_per_day    0.9998849</span></span>
+<span id="cb14-265"><a href="#cb14-265" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; age_at_index          1.0120707</span></span>
+<span id="cb14-266"><a href="#cb14-266" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                         Lower95   Median Upper95      Mean        SD Mode</span></span>
+<span id="cb14-267"><a href="#cb14-267" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[1]             -0.433475 0.929858 2.26676 0.9127562 0.7026212   NA</span></span>
+<span id="cb14-268"><a href="#cb14-268" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[2]              2.018540 3.424780 4.94128 3.4122965 0.7522541   NA</span></span>
+<span id="cb14-269"><a href="#cb14-269" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000076344  0.000000 0.000000 1.00000 0.3286620 0.4698052    0</span></span>
+<span id="cb14-270"><a href="#cb14-270" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000077274  0.000000 1.000000 1.00000 0.5098432 0.4999865    1</span></span>
+<span id="cb14-271"><a href="#cb14-271" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000101888  0.000000 1.000000 1.00000 0.7050384 0.4561016    1</span></span>
+<span id="cb14-272"><a href="#cb14-272" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000115548  1.000000 1.000000 1.00000 0.9829830 0.1293562    1</span></span>
+<span id="cb14-273"><a href="#cb14-273" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                             MCerr MC%ofSD SSeff        AC.30      psrf</span></span>
+<span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[1]             0.061420785     8.7   131  0.404023577 1.0113915</span></span>
+<span id="cb14-275"><a href="#cb14-275" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alpha0[2]             0.058550590     7.8   165  0.360285750 1.0154169</span></span>
+<span id="cb14-276"><a href="#cb14-276" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000076344 0.020462713     4.4   527  0.104538299 1.0013954</span></span>
+<span id="cb14-277"><a href="#cb14-277" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000077274 0.017777370     3.6   791  0.009320344 1.0005987</span></span>
+<span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000101888 0.024188016     5.3   356  0.135885988 0.9997783</span></span>
+<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gamma.ENSG00000115548 0.005109442     3.9   641 -0.004052177 1.0561920</span></span></code></pre></div>
+<p>The <code>summary</code> function provides the following output: *
+<code>alphamatrix</code>, the MCMC output for the threshold parameters;
+* <code>betamatrix</code>, the MCMC output for the penalized parameters;
+* <code>zetamatrix</code>, The MCMC output for the unpenalized
+parameters (if included); * <code>gammamatrix</code>, the MCMC output
+for the variable inclusion parameters (not available when
+<code>model = &quot;lasso&quot;</code>);<br />
+* <code>gammamean</code>, the posterior mean of the variable inclusion
+indicators (not available when <code>model = &quot;lasso&quot;</code>); *
+<code>gamma.BayesFactor</code>, Bayes factor for the variable inclusion
+indicators (not available when <code>model = &quot;lasso&quot;</code>); *
+<code>Beta.BayesFactor</code>, Bayes factor for the penalized
+parameters; and * <code>lambdamatrix</code>, the MCMC output for the
+penalty parameter (not available when
+<code>model=&quot;normalss&quot;</code>).</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>summary.fit<span class="ot">&lt;-</span><span class="fu">summary</span>(fit)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(summary.fit)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;alphamatrix&quot;       &quot;betamatrix&quot;        &quot;zetamatrix&quot;       </span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [4] &quot;gammamatrix&quot;       &quot;gammamean&quot;         &quot;gamma.BayesFactor&quot;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [7] &quot;Beta.BayesFactor&quot;  &quot;lambdamatrix&quot;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(summary.fit<span class="sc">$</span>gammamatrix)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000076344 gamma.ENSG00000077274 gamma.ENSG00000101888</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     1</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     1</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     1</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     1</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     1</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     1</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000115548 gamma.ENSG00000122884 gamma.ENSG00000125430</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     0                     0</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     1                     0                     0</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     0                     0</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     0                     0</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     1                     0                     1</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     0                     0</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000131370 gamma.ENSG00000135443 gamma.ENSG00000136457</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     0                     0</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     1                     0                     0</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     0                     1</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     1</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     1</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000138398 gamma.ENSG00000150636 gamma.ENSG00000161277</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     1                     1</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     1                     1                     1</span></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     1                     1</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     1                     1</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     1                     1                     1</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     1                     1</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000163510 gamma.ENSG00000164485 gamma.ENSG00000164651</span></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     1</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     1</span></span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     1</span></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     1</span></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000166091 gamma.ENSG00000166342 gamma.ENSG00000171121</span></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     0</span></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     0</span></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     0                     0</span></span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     0                     0</span></span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     0                     0</span></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000177173 gamma.ENSG00000180229 gamma.ENSG00000188817</span></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     0                     0</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     1                     0                     1</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     1                     0</span></span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     0                     0</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     1                     0                     0</span></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     0                     1</span></span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000197360 gamma.ENSG00000203601 gamma.ENSG00000225449</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     0</span></span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     0</span></span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     0</span></span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     0</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000230201 gamma.ENSG00000233996 gamma.ENSG00000236138</span></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     0</span></span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     1                     0</span></span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     1                     1</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     1                     0</span></span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     1                     0</span></span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000236819 gamma.ENSG00000250602 gamma.ENSG00000253923</span></span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     1                     1</span></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     1                     1                     1</span></span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     1                     0                     1</span></span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     0                     0</span></span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     1                     0                     1</span></span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     1                     1</span></span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000256980 gamma.ENSG00000259083 gamma.ENSG00000259134</span></span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     1</span></span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     1</span></span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     1</span></span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     0</span></span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-84"><a href="#cb15-84" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000260484 gamma.ENSG00000263612 gamma.ENSG00000264049</span></span>
+<span id="cb15-85"><a href="#cb15-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     0                     0</span></span>
+<span id="cb15-86"><a href="#cb15-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     0                     0</span></span>
+<span id="cb15-87"><a href="#cb15-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     1</span></span>
+<span id="cb15-88"><a href="#cb15-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     0</span></span>
+<span id="cb15-89"><a href="#cb15-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-90"><a href="#cb15-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     0                     0</span></span>
+<span id="cb15-91"><a href="#cb15-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000264954 gamma.ENSG00000265579 gamma.ENSG00000271711</span></span>
+<span id="cb15-92"><a href="#cb15-92" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     1                     0                     0</span></span>
+<span id="cb15-93"><a href="#cb15-93" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     1                     1</span></span>
+<span id="cb15-94"><a href="#cb15-94" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     0                     0</span></span>
+<span id="cb15-95"><a href="#cb15-95" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     0                     0                     0</span></span>
+<span id="cb15-96"><a href="#cb15-96" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     0                     0</span></span>
+<span id="cb15-97"><a href="#cb15-97" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     1                     0                     0</span></span>
+<span id="cb15-98"><a href="#cb15-98" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      gamma.ENSG00000272071 gamma.ENSG00000276517</span></span>
+<span id="cb15-99"><a href="#cb15-99" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1001                     0                     1</span></span>
+<span id="cb15-100"><a href="#cb15-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1004                     0                     1</span></span>
+<span id="cb15-101"><a href="#cb15-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1007                     0                     1</span></span>
+<span id="cb15-102"><a href="#cb15-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1010                     1                     1</span></span>
+<span id="cb15-103"><a href="#cb15-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1013                     0                     1</span></span>
+<span id="cb15-104"><a href="#cb15-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1016                     0                     1</span></span></code></pre></div>
+<p>To identify which penalized features using Bayes factor at a given
+threshold (e.g., 5):</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">which</span>(summary.fit<span class="sc">$</span>Beta.BayesFactor<span class="sc">&gt;</span><span class="dv">5</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;ENSG00000076344&quot; &quot;ENSG00000077274&quot; &quot;ENSG00000101888&quot; &quot;ENSG00000115548&quot;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;ENSG00000125430&quot; &quot;ENSG00000131370&quot; &quot;ENSG00000138398&quot; &quot;ENSG00000150636&quot;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;ENSG00000161277&quot; &quot;ENSG00000164485&quot; &quot;ENSG00000164651&quot; &quot;ENSG00000166091&quot;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [13] &quot;ENSG00000177173&quot; &quot;ENSG00000188817&quot; &quot;ENSG00000230201&quot; &quot;ENSG00000233996&quot;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [17] &quot;ENSG00000236819&quot; &quot;ENSG00000250602&quot; &quot;ENSG00000253923&quot; &quot;ENSG00000259134&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [21] &quot;ENSG00000264954&quot; &quot;ENSG00000272071&quot; &quot;ENSG00000276517&quot;</span></span></code></pre></div>
+<p>or</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">which</span>(summary.fit<span class="sc">$</span>gamma.BayesFactor<span class="sc">&gt;</span><span class="dv">5</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;ENSG00000076344&quot; &quot;ENSG00000077274&quot; &quot;ENSG00000101888&quot; &quot;ENSG00000115548&quot;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;ENSG00000125430&quot; &quot;ENSG00000131370&quot; &quot;ENSG00000138398&quot; &quot;ENSG00000150636&quot;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;ENSG00000161277&quot; &quot;ENSG00000164485&quot; &quot;ENSG00000164651&quot; &quot;ENSG00000166091&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [13] &quot;ENSG00000177173&quot; &quot;ENSG00000188817&quot; &quot;ENSG00000230201&quot; &quot;ENSG00000233996&quot;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [17] &quot;ENSG00000236819&quot; &quot;ENSG00000250602&quot; &quot;ENSG00000253923&quot; &quot;ENSG00000259134&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [21] &quot;ENSG00000264954&quot; &quot;ENSG00000272071&quot; &quot;ENSG00000276517&quot;</span></span></code></pre></div>
+<p>Alternatively, a threshold for <span class="math inline">\(\bar{\gamma}_j\)</span> could be used for variable
+selection.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">which</span>(summary.fit<span class="sc">$</span>gammamean<span class="sc">&gt;</span><span class="fl">0.5</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;ENSG00000077274&quot; &quot;ENSG00000101888&quot; &quot;ENSG00000115548&quot; &quot;ENSG00000138398&quot;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [5] &quot;ENSG00000161277&quot; &quot;ENSG00000164485&quot; &quot;ENSG00000164651&quot; &quot;ENSG00000177173&quot;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [9] &quot;ENSG00000233996&quot; &quot;ENSG00000236819&quot; &quot;ENSG00000253923&quot; &quot;ENSG00000259134&quot;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [13] &quot;ENSG00000276517&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>coefficients<span class="ot">&lt;-</span><span class="fu">coef</span>(fit)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>coefficients<span class="sc">$</span>gamma[<span class="fu">which</span>(summary.fit<span class="sc">$</span>gamma.BayesFactor<span class="sc">&gt;</span><span class="dv">5</span>)]</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000076344 ENSG00000077274 ENSG00000101888 ENSG00000115548 ENSG00000125430 </span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.3286620       0.5098432       0.7050384       0.9829830       0.3436770 </span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000131370 ENSG00000138398 ENSG00000150636 ENSG00000161277 ENSG00000164485 </span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.3843844       0.9526193       0.4854855       0.9369369       0.5472139 </span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000164651 ENSG00000166091 ENSG00000177173 ENSG00000188817 ENSG00000230201 </span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.5445445       0.4581248       0.9589590       0.4070737       0.3680347 </span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000233996 ENSG00000236819 ENSG00000250602 ENSG00000253923 ENSG00000259134 </span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.5979313       0.9339339       0.3259927       0.6893560       0.6980314 </span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000264954 ENSG00000272071 ENSG00000276517 </span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.2148815       0.2228896       0.9446113</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>coefficients<span class="sc">$</span>gamma[<span class="fu">which</span>(summary.fit<span class="sc">$</span>Beta.BayesFactor<span class="sc">&gt;</span><span class="dv">5</span>)]</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000076344 ENSG00000077274 ENSG00000101888 ENSG00000115548 ENSG00000125430 </span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.3286620       0.5098432       0.7050384       0.9829830       0.3436770 </span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000131370 ENSG00000138398 ENSG00000150636 ENSG00000161277 ENSG00000164485 </span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.3843844       0.9526193       0.4854855       0.9369369       0.5472139 </span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000164651 ENSG00000166091 ENSG00000177173 ENSG00000188817 ENSG00000230201 </span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.5445445       0.4581248       0.9589590       0.4070737       0.3680347 </span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000233996 ENSG00000236819 ENSG00000250602 ENSG00000253923 ENSG00000259134 </span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.5979313       0.9339339       0.3259927       0.6893560       0.6980314 </span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ENSG00000264954 ENSG00000272071 ENSG00000276517 </span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       0.2148815       0.2228896       0.9446113</span></span></code></pre></div>
+<p>To obtain model predictions,</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>phat<span class="ot">&lt;-</span><span class="fu">predict</span>(fit)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(phat<span class="sc">$</span>class, <span class="fu">colData</span>(finalSet)<span class="sc">$</span>Stage)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    </span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       1   2   3</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   1 121  16   2</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   2   3  31  14</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   3   0  14  41</span></span></code></pre></div>
+<p>The <code>plot</code> function provides a trace of the sampled output
+and optionally the density estimate for each variable in the chain. This
+function additionally adds the appropriate <code>beta</code> and
+<code>gamma</code> labels for each penalized variable name.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit)</span></code></pre></div>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ol style="list-style-type: decimal">
+<li>Zhang, Y.; Archer, K.J. Bayesian variable selection for
+high-dimensional data with an ordinal response: identifying genes
+associated with prognostic risk group in acute myeloid leukemia. <em>BMC
+Bioinformatics</em> 2021, 22, 539.</li>
+<li>Zhang, Y.; Archer, K.J. Bayesian penalized cumulative logit model
+for high-dimensional data with an ordinal response. <em>Statistics in
+Medicine</em> 2021, 40, 1453–1481.</li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

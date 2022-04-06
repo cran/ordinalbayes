@@ -35,8 +35,8 @@ Summarize an Ordinal Bayes Object.
 }
 \examples{
 \donttest{
-library(DESeq2)
-fit<-ordinalbayes(Stage~1, data=colData(reducedSet),x=t(assay(reducedSet)),
+data("cesc")
+fit<-ordinalbayes(Stage~1, data=cesc, x=cesc[,5:45],
          model="regressvi", gamma.ind="fixed", pi.fixed=0.99,
          adaptSteps=1000, burnInSteps=1000, nChains=2,
          numSavedSteps=2000, thinSteps=2, seed=26)
